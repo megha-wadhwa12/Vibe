@@ -1,4 +1,3 @@
-import { title } from 'process';
 import { StyleSheet } from 'react-native';
 
 export const signupStyles = StyleSheet.create({
@@ -7,45 +6,87 @@ export const signupStyles = StyleSheet.create({
     },
     container: {
         flex: 1,
+        paddingTop: 0,
+        paddingBottom: 40,
+        paddingHorizontal: 20,
+    },
+    content: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20
+        width: '100%',
     },
     title: {
-        fontSize: 24,
-        fontWeight: '600',
-        marginBottom: 20,
+        fontSize: 28,
+        fontWeight: '700',
+        marginBottom: 30,
         textAlign: 'center',
-        // fontFamily: 'Plus Jakarta Sans, sans-serif'
+        color: '#333',
+    },
+    subtitle: {
+        fontSize: 14,
+        color: '#9A89FF',
+        marginTop: -20,
+        marginBottom: 30,
+        textAlign: 'center',
     },
     form: {
         width: '100%',
         alignItems: 'center',
-        marginTop: 30,
-        paddingHorizontal: 20,
+        marginTop: 20,
     },
     input: {
         width: '100%',
         height: 50,
-        backgroundColor: 'rgba(255,255,255,0.6)',
+        backgroundColor: '#FFFFFF',
         borderRadius: 25,
         paddingHorizontal: 20,
         fontSize: 16,
         color: '#333',
         marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    inputLabel: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 8,
+        marginLeft: 4,
+        alignSelf: 'flex-start',
     },
     button: {
-        marginTop: 10,
-        backgroundColor: '#9A89FF',
+        marginTop: 20,
         borderRadius: 25,
         width: '100%',
         height: 50,
         justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
     },
     buttonText: {
         color: '#fff',
         fontWeight: '600',
         fontSize: 16,
+    },
+    errorText: {
+        color: '#FF6B6B',
+        fontSize: 12,
+        marginTop: -12,
+        marginBottom: 8,
+        marginLeft: 4,
+        alignSelf: 'flex-start',
     },
 })
