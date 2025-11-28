@@ -6,13 +6,14 @@ interface progressIndicatorProps {
   total: number,
   current: number
 }
+
 export default function ProgressIndicator({ total, current }: progressIndicatorProps) {
 
   const router = useRouter();
 
   const screens = [
     '/auth/signup/basic-info',
-    '/auth/signup/signup-account-details',
+    '/auth/signup/account-details',
     '/auth/signup/birthday',
     '/auth/signup/verification',
   ] as const;
