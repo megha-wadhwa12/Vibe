@@ -26,7 +26,7 @@ export default function Screen4() {
         <Text style={s.getStartedText}>Get Started →</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.replace('/auth/login')} style={{ marginTop: 10 }}>
+      <TouchableOpacity onPress={() => router.replace('/auth/login/login-screen')} style={{ marginTop: 10 }}>
         <Text style={s.smallLink}>Already vibing? Log in</Text>
       </TouchableOpacity>
     </LinearGradient>
