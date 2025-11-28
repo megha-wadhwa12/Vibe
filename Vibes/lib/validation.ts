@@ -198,3 +198,59 @@ export function validateOTP(code: string): ValidationResult {
   return { isValid: true };
 }
 
+/**
+ * Validates email or username (for login)
+ * Returns object with valid boolean and message string
+ */
+export function validateEmailOrUsername(value: string): { valid: boolean; message: string } {
+  if (!value || value.trim().length === 0) {
+    return {
+      valid: false,
+      message: 'Email or username is required',
+    };
+  }
+
+  const trimmedValue = value.trim();
+
+  // Check if it's an email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (emailRegex.test(trimmedValue)) {
+    return { valid: true, message: '' };
+  }
+
+  // Check if it's a valid username (at least 3 characters, alphanumeric + underscore)
+  if (trimmedValue.length >= 3 && /^[a-zA-Z0-9_]+$/.test(trimmedValue)) {
+    return { valid: true, message: '' };
+  }
+
+  return {
+    valid: false,
+    message: 'Please enter a valid email or username',
+  };
+}
+
+/**
+ * Validates email format
+ * Returns object with valid boolean and message string
+ */
+export function validateEmail(email: string): { valid: boolean; message: string } {
+  if (!email || email.trim().length === 0) {
+    return {
+      valid: false,
+      message: 'Email is required',
+    };
+  }
+
+  const trimmedEmail = email.trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(trimmedEmail)) {
+    return {
+      valid: false,
+      message: 'Please enter a valid email address',
+    };
+  }
+
+  return { valid: true, message: '' };
+}
+
