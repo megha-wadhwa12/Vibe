@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,15 +22,28 @@ interface VibeCard {
   content: string;
   hashtags: string[];
   imageUrl?: string;
+  category?: string;
 }
 
-const dummyVibes: VibeCard[] = [
+const categories = [
+  'Trending',
+  'Calm',
+  'Joyful ✨',
+  'Reflective',
+  'Adventure',
+  'Aesthetic',
+  'Serene',
+  'Inspiring',
+];
+
+const exploreVibes: VibeCard[] = [
   {
     id: '1',
     type: 'image',
     content: '',
-    hashtags: ['#dreamy', '#nostalgic'],
-    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+    hashtags: ['#cozy', '#peaceful'],
+    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
+    category: 'Calm',
   },
   {
     id: '2',
@@ -37,60 +51,83 @@ const dummyVibes: VibeCard[] = [
     content: '',
     hashtags: ['#serene', '#calm'],
     imageUrl: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400',
+    category: 'Serene',
   },
   {
     id: '3',
-    type: 'text',
-    content: '"The future belongs to those who believe in the beauty of their dreams."',
-    hashtags: ['#inspirational'],
+    type: 'image',
+    content: '',
+    hashtags: ['#dreamy', '#nostalgic'],
+    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+    category: 'Reflective',
   },
   {
     id: '4',
-    type: 'text',
-    content: '"And into the forest I go, to lose my mind and find my soul."',
-    hashtags: ['#adventure'],
-  },
-  {
-    id: '5',
-    type: 'image',
-    content: '',
-    hashtags: ['#cozy', '#peaceful'],
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
-  },
-  {
-    id: '6',
     type: 'image',
     content: '',
     hashtags: ['#aesthetic'],
     imageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
+    category: 'Aesthetic',
+  },
+  {
+    id: '5',
+    type: 'text',
+    content: '"The future belongs to those who believe in the beauty of their dreams."',
+    hashtags: ['#inspirational'],
+    category: 'Inspiring',
+  },
+  {
+    id: '6',
+    type: 'text',
+    content: '"And into the forest I go, to lose my mind and find my soul."',
+    hashtags: ['#adventure'],
+    category: 'Adventure',
   },
   {
     id: '7',
     type: 'image',
     content: '',
-    hashtags: ['#cozy', '#peaceful'],
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
+    hashtags: ['#joyful', '#bright'],
+    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+    category: 'Joyful ✨',
   },
   {
     id: '8',
-    type: 'image',
-    content: '',
-    hashtags: ['#aesthetic'],
-    imageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
+    type: 'text',
+    content: '"Every moment is a fresh beginning."',
+    hashtags: ['#inspiring', '#motivational'],
+    category: 'Inspiring',
   },
   {
     id: '9',
     type: 'image',
     content: '',
-    hashtags: ['#cozy', '#peaceful'],
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
+    hashtags: ['#serene', '#peaceful'],
+    imageUrl: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400',
+    category: 'Serene',
   },
   {
     id: '10',
     type: 'image',
     content: '',
-    hashtags: ['#aesthetic'],
+    hashtags: ['#aesthetic', '#dreamy'],
     imageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
+    category: 'Aesthetic',
+  },
+  {
+    id: '11',
+    type: 'text',
+    content: '"Life is a journey, not a destination."',
+    hashtags: ['#adventure', '#inspiring'],
+    category: 'Adventure',
+  },
+  {
+    id: '12',
+    type: 'image',
+    content: '',
+    hashtags: ['#calm', '#peaceful'],
+    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
+    category: 'Calm',
   },
 ];
 
@@ -104,9 +141,22 @@ const hashtagColors: { [key: string]: string } = {
   '#cozy': '#90EE90',
   '#peaceful': '#FFA500',
   '#aesthetic': '#FFB6C1',
+  '#joyful': '#FFD700',
+  '#bright': '#90EE90',
+  '#inspiring': '#FFB6C1',
+  '#motivational': '#FFD700',
 };
 
-export default function Home() {
+export default function Explore() {
+  const [selectedCategory, setSelectedCategory] = useState('Trending');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredVibes = exploreVibes.filter((vibe) => {
+    if (selectedCategory === 'Trending') {
+      return true; // Show all for Trending
+    }
+    return vibe.category === selectedCategory;
+  });
 
   const renderVibeCard = (vibe: VibeCard, index: number) => {
     return (
@@ -154,6 +204,10 @@ export default function Home() {
             <Ionicons name="paper-plane-outline" size={20} color="#666" />
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity style={styles.arrowButton}>
+          <Ionicons name="arrow-forward" size={18} color="#666" />
+        </TouchableOpacity>
       </View>
     );
   };
@@ -164,16 +218,48 @@ export default function Home() {
         colors={['#f6cae1ff', '#e5e5f9']}
         style={styles.gradientBackground}
       >
-        {/* Top Bar */}
-        <View style={styles.topBar}>
-          <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={20} color="#8B4513" />
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Ionicons name="search-outline" size={20} color="#999" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search for vibes, moods, tags, or users"
+              placeholderTextColor="#999"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
           </View>
-          <Text style={styles.title}>Vibe Board</Text>
-          <TouchableOpacity>
-            <Ionicons name="notifications-outline" size={24} color="#333" />
-          </TouchableOpacity>
         </View>
+
+        {/* Category Chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryContainer}
+          style={styles.categoryScroll}
+        >
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              onPress={() => setSelectedCategory(category)}
+              activeOpacity={0.7}
+            >
+              {selectedCategory === category ? (
+                <LinearGradient
+                  colors={['#df54d1ff', '#a243f5ff']}
+                  style={styles.categoryChipActive}
+                >
+                  <Text style={styles.categoryChipTextActive}>{category}</Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.categoryChip}>
+                  <Text style={styles.categoryChipText}>{category}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         {/* Vibe Cards Grid */}
         <ScrollView
@@ -182,7 +268,7 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.cardsGrid}>
-            {dummyVibes.map((vibe, index) => renderVibeCard(vibe, index))}
+            {filteredVibes.map((vibe, index) => renderVibeCard(vibe, index))}
           </View>
         </ScrollView>
       </LinearGradient>
@@ -198,29 +284,60 @@ const styles = StyleSheet.create({
   gradientBackground: {
     flex: 1,
   },
-  topBar: {
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  avatarContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#D2B48C',
-    justifyContent: 'center',
-    alignItems: 'center',
+  searchIcon: {
+    marginRight: 8,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#ffffff',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
-    textShadowColor: '#8918ec5a',
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+  },
+  categoryScroll: {
+    maxHeight: 50,
+  },
+  categoryContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  categoryChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#e8e0f5',
+    marginRight: 8,
+  },
+  categoryChipActive: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  categoryChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+  },
+  categoryChipTextActive: {
+    color: '#fff',
   },
   scrollView: {
     flex: 1,
@@ -245,6 +362,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+    position: 'relative',
   },
   vibeImage: {
     width: '100%',
@@ -294,5 +412,21 @@ const styles = StyleSheet.create({
   },
   reactionButton: {
     padding: 4,
+  },
+  arrowButton: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });
