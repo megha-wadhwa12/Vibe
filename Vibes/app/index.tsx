@@ -7,44 +7,37 @@ export default function Index() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAppState = async () => {
-      try {
-        const hasOnboarded = await AsyncStorage.getItem("hasOnboarded");
-        const userRegistered = await AsyncStorage.getItem("userRegistered");
+useEffect(() => {
+  const checkAppState = async () => {
+    try {
+      const hasOnboarded = await AsyncStorage.getItem("hasOnboarded");
+      const userRegistered = await AsyncStorage.getItem("userRegistered");
 
-        // 🔄 Opposite of original:
-        // If hasOnboarded *exists* → send user back to onboarding
-        if (hasOnboarded) {
-          router.replace("/onboarding/screen1");
-          return;
-        }
-
-        // If NOT onboarded and NOT registered → send to /home directly
-        if (!hasOnboarded && !userRegistered) {
-          router.replace("/home");
-          return;
-        }
-
-        // If onboarded is missing but userRegistered *exists*
-        // → show loader briefly then go to /home
-        if (!hasOnboarded && userRegistered) {
-          setTimeout(() => {
-            router.replace("/home");
-          }, 1000);
-          return;
-        }
-
-      } catch (error) {
-        console.error("Error checking app state:", error);
-        router.replace("/home"); // Opposite of original fallback
-      } finally {
-        setLoading(false);
+      if (hasOnboarded) {
+        router.replace("/home");
+        return;
       }
-    };
 
-    checkAppState();
-  }, [router]);
+      if (!hasOnboarded) {
+        router.replace("/onboarding/screen1");
+        return;
+      }
+
+      if (!hasOnboarded && userRegistered) {
+        router.replace("/home");
+        return;
+      }
+
+    } catch (error) {
+      console.error("Error checking app state:", error);
+      router.replace("/onboarding/screen1"); // fallback to onboarding
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  checkAppState();
+}, [router]);
 
   return (
     <View style={styles.container}>

@@ -20,6 +20,9 @@ export interface SignupData {
 
   // Verification
   otpCode: string;
+  actualOtp?: string;
+  otpExpiry?: number | null;
+  otpSentAt?: number | null;
 }
 
 interface SignupContextType {
@@ -37,6 +40,9 @@ const initialSignupData: SignupData = {
   password: '',
   birthday: null,
   otpCode: '',
+  actualOtp: undefined,
+  otpExpiry: null,
+  otpSentAt: null,
 };
 
 const SignupContext = createContext<SignupContextType | undefined>(undefined);

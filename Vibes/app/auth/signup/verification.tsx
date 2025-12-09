@@ -13,16 +13,12 @@ export default function Verify() {
   const { signupData, updateSignupData } = useSignup();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState<string | undefined>();
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [isVerifying, setIsVerifying ] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   useEffect(() => {
-    // Send OTP when component mounts
-    if (signupData.emailOrPhone) {
-      sendOTP(signupData.emailOrPhone);
-      setResendTimer(30);
-    }
+    setResendTimer(30);
   }, []);
 
   useEffect(() => {
@@ -77,8 +73,8 @@ export default function Verify() {
     setError(undefined);
 
     try {
-      const result = await verifyOTP(otpCode);
-      
+      const result = await verifyOTP(otpCode, signupData.actualOtp, signupData.otpExpiry);
+
       if (result.success) {
         updateSignupData({ otpCode: otpCode });
         // Navigate to home
