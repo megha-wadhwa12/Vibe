@@ -8,7 +8,6 @@ import { useSignup } from '@/contexts/SignupContext'
 import { validateBirthday } from '@/lib/validation'
 import WheelPicker from 'react-native-wheel-picker-expo'
 import WheelPickerExpo from 'react-native-wheel-picker-expo'
-import { sendOTP } from '@/lib/auth'
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -59,27 +58,6 @@ export default function Birthday() {
     updateSignupData({
       birthday: { month, day, year },
     });
-    router.push('/auth/signup/verification');
-
-    try {
-      const result = await sendOTP(signupData.emailOrPhone);
-
-      if (result.success && result.otp) {
-        const expiry = Date.now() + 10 * 60 * 1000;
-
-        updateSignupData({
-          actualOtp: result.otp,
-          otpExpiry: expiry,
-          otpSentAt: Date.now(),
-        });
-      } else {
-        setError(result.message || "Failed to send OTP.");
-        return;
-      }
-    } catch (e) {
-      setError("Network issue. Try again.");
-      return;
-    }
 
     router.push("/auth/signup/verification");
   };

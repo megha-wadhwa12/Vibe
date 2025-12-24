@@ -36,7 +36,7 @@ export function validateName(name: string): ValidationResult {
 /**
  * Validates email or phone number
  */
-export function validateEmailOrPhone(value: string): ValidationResult {
+export function validateEmail(value: string): ValidationResult {
   if (!value || value.trim().length === 0) {
     return {
       isValid: false,
@@ -171,34 +171,6 @@ export function validateBirthday(month: number, day: number, year: number): Vali
 }
 
 /**
- * Validates OTP code (must be 6 digits)
- */
-export function validateOTP(code: string): ValidationResult {
-  if (!code || code.length === 0) {
-    return {
-      isValid: false,
-      error: 'OTP code is required',
-    };
-  }
-
-  if (code.length !== 6) {
-    return {
-      isValid: false,
-      error: 'OTP code must be 6 digits',
-    };
-  }
-
-  if (!/^\d+$/.test(code)) {
-    return {
-      isValid: false,
-      error: 'OTP code must contain only numbers',
-    };
-  }
-
-  return { isValid: true };
-}
-
-/**
  * Validates email or username (for login)
  * Returns object with valid boolean and message string
  */
@@ -233,24 +205,24 @@ export function validateEmailOrUsername(value: string): { valid: boolean; messag
  * Validates email format
  * Returns object with valid boolean and message string
  */
-export function validateEmail(email: string): { valid: boolean; message: string } {
-  if (!email || email.trim().length === 0) {
-    return {
-      valid: false,
-      message: 'Email is required',
-    };
-  }
+// export function validateEmail(email: string): { valid: boolean; message: string } {
+//   if (!email || email.trim().length === 0) {
+//     return {
+//       valid: false,
+//       message: 'Email is required',
+//     };
+//   }
 
-  const trimmedEmail = email.trim();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//   const trimmedEmail = email.trim();
+//   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!emailRegex.test(trimmedEmail)) {
-    return {
-      valid: false,
-      message: 'Please enter a valid email address',
-    };
-  }
+//   if (!emailRegex.test(trimmedEmail)) {
+//     return {
+//       valid: false,
+//       message: 'Please enter a valid email address',
+//     };
+//   }
 
-  return { valid: true, message: '' };
-}
+//   return { valid: true, message: '' };
+// }
 

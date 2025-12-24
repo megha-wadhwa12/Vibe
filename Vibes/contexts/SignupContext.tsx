@@ -7,7 +7,7 @@ export interface SignupData {
   lastName: string;
 
   // Account Details
-  emailOrPhone: string;
+  email: string;
   username: string;
   password: string;
 
@@ -17,12 +17,6 @@ export interface SignupData {
     day: number;
     year: number;
   } | null;
-
-  // Verification
-  otpCode: string;
-  actualOtp?: string;
-  otpExpiry?: number | null;
-  otpSentAt?: number | null;
 }
 
 interface SignupContextType {
@@ -35,14 +29,10 @@ const initialSignupData: SignupData = {
   profilePhoto: null,
   firstName: '',
   lastName: '',
-  emailOrPhone: '',
+  email: '',
   username: '',
   password: '',
   birthday: null,
-  otpCode: '',
-  actualOtp: undefined,
-  otpExpiry: null,
-  otpSentAt: null,
 };
 
 const SignupContext = createContext<SignupContextType | undefined>(undefined);

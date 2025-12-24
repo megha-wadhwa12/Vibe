@@ -5,17 +5,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/firebase/firebaseConfig'
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -47,22 +49,47 @@ export default function LoginScreen() {
       return;
     }
 
-    setErrors({});
-    setIsLoading(true);
-
     try {
-      const result = await login({
-        emailOrUsername: emailOrUsername.trim(),
-        password,
-      });
+      setErrors({});
+      setIsLoading(true);
 
-      if (result.success) {
-        router.replace('/home');
+      console.log('LOGIN CLICKED');
+
+      await signInWithEmailAndPassword(
+        auth,
+        emailOrUsername.trim(),
+        password
+      );
+
+      console.log('LOGIN SUCCESS');
+
+
+    } catch (err: any) {
+      const code = err?.code;
+      console.log("code: ", code);
+
+      if (code === 'auth/invalid-credential') {
+        setErrors({
+          emailOrUsername: 'Invalid email or password',
+        });
+      } else if (code === 'auth/invalid-email') {
+        setErrors({
+          emailOrUsername: 'Invalid email address',
+        });
+      } else if (code === 'auth/too-many-requests') {
+        setErrors({
+          emailOrUsername: 'Too many attempts. Try again later.',
+        });
+      } else if (code === 'auth/user-disabled') {
+        setErrors({
+          emailOrUsername: 'This account has been disabled.',
+        });
       } else {
-        Alert.alert('Login Failed', result.message || 'Invalid credentials. Please try again.');
+        setErrors({
+          emailOrUsername: 'Login failed. Please try again.',
+        });
       }
-    } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+
     } finally {
       setIsLoading(false);
     }

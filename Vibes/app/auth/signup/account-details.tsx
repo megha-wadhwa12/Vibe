@@ -5,31 +5,35 @@ import { signupStyles as s } from '@/styles/signup'
 import ProgressIndicator from '@/components/ProgressIndicator'
 import { useRouter } from 'expo-router'
 import { useSignup } from '@/contexts/SignupContext'
-import { validateEmailOrPhone, validateUsername, validatePassword } from '@/lib/validation'
+import { validateEmail, validateUsername, validatePassword } from '@/lib/validation'
 import { Ionicons } from '@expo/vector-icons'
+
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'
+import { auth } from '@/firebase/firebaseConfig'
+
 
 export default function AccountDetails() {
   const router = useRouter();
   const { signupData, updateSignupData } = useSignup();
-  const [emailOrPhone, setEmailOrPhone] = useState(signupData.emailOrPhone);
+  const [email, setemail] = useState(signupData.email);
   const [username, setUsername] = useState(signupData.username);
   const [password, setPassword] = useState(signupData.password);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{
-    emailOrPhone?: string;
+    email?: string;
     username?: string;
     password?: string;
   }>({});
 
-  const handleContinue = () => {
-    const emailOrPhoneValidation = validateEmailOrPhone(emailOrPhone);
+  const handleContinue = async () => {
+    const emailValidation = validateEmail(email);
     const usernameValidation = validateUsername(username);
     const passwordValidation = validatePassword(password);
 
     const newErrors: typeof errors = {};
-    
-    if (!emailOrPhoneValidation.isValid) {
-      newErrors.emailOrPhone = emailOrPhoneValidation.error;
+
+    if (!emailValidation.isValid) {
+      newErrors.email = emailValidation.error;
     }
     if (!usernameValidation.isValid) {
       newErrors.username = usernameValidation.error;
@@ -43,16 +47,41 @@ export default function AccountDetails() {
       return;
     }
 
-    setErrors({});
-    updateSignupData({
-      emailOrPhone: emailOrPhone.trim(),
-      username: username.trim(),
-      password: password,
-    });
-    router.push('/auth/signup/birthday');
+    try {
+
+      setErrors({});
+
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      )
+
+      await sendEmailVerification(userCred.user)
+
+      updateSignupData({
+        email: email.trim(),
+        username: username.trim(),
+        password: password,
+      });
+
+      router.push('/auth/signup/birthday');
+    } catch (err: any) {
+      const firebaseError = err?.code;
+
+      if (firebaseError === 'auth/email-already-in-use') {
+        setErrors({ email: 'Email already in use' });
+      } else if (firebaseError === 'auth/invalid-email') {
+        setErrors({ email: 'Invalid email address' });
+      } else if (firebaseError === 'auth/weak-password') {
+        setErrors({ password: 'Password is too weak' });
+      } else {
+        setErrors({ email: 'Something went wrong. Try again.' });
+      }
+    }
   };
 
-  const isDisabled = !emailOrPhone.trim() || !username.trim() || !password;
+  const isDisabled = !email.trim() || !username.trim() || !password;
 
   return (
     <View style={s.screen}>
@@ -68,19 +97,19 @@ export default function AccountDetails() {
             <TextInput
               placeholder="Enter your email or phone number"
               placeholderTextColor="#b8b8b8"
-              style={[s.input, errors.emailOrPhone && { borderColor: '#FF6B6B', borderWidth: 1 }]}
-              value={emailOrPhone}
+              style={[s.input, errors.email && { borderColor: '#FF6B6B', borderWidth: 1 }]}
+              value={email}
               onChangeText={(text) => {
-                setEmailOrPhone(text);
-                if (errors.emailOrPhone) {
-                  setErrors({ ...errors, emailOrPhone: undefined });
+                setemail(text);
+                if (errors.email) {
+                  setErrors({ ...errors, email: undefined });
                 }
               }}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
             />
-            {errors.emailOrPhone && <Text style={s.errorText}>{errors.emailOrPhone}</Text>}
+            {errors.email && <Text style={s.errorText}>{errors.email}</Text>}
 
             <Text style={s.inputLabel}>Username</Text>
             <TextInput

@@ -7,13 +7,17 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { signOut } from 'firebase/auth';
+import { auth } from '@/firebase/firebaseConfig';
+
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 48) / 2; // 2 cards per row with padding
+const CARD_WIDTH = (width - 48) / 2;
 
 interface VibeCard {
   id: string;
@@ -108,6 +112,17 @@ const hashtagColors: { [key: string]: string } = {
 
 export default function Home() {
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      console.log('User logged out');
+      // ❌ yahan router.replace() nahi likhna
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
+  };
+
+
   const renderVibeCard = (vibe: VibeCard, index: number) => {
     return (
       <View key={vibe.id} style={styles.vibeCard}>
@@ -166,9 +181,15 @@ export default function Home() {
       >
         {/* Top Bar */}
         <View style={styles.topBar}>
-          <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={20} color="#8B4513" />
+          <View style={{display: 'flex', flexDirection: 'row'}}>
+            <View style={styles.avatarContainer}>
+              <Ionicons name="person" size={20} color="#8B4513" />
+            </View>
+            <Pressable onPress={handleLogout} style={styles.logoutBtn}>
+              <Text style={styles.logoutText}>Log out</Text>
+            </Pressable>
           </View>
+
           <Text style={styles.title}>Vibe Board</Text>
           <TouchableOpacity>
             <Ionicons name="notifications-outline" size={24} color="#333" />
@@ -294,5 +315,16 @@ const styles = StyleSheet.create({
   },
   reactionButton: {
     padding: 4,
+  },
+  logoutBtn: {
+    marginLeft: 30,
+    padding: 14,
+    borderRadius: 10,
+    backgroundColor: '#FFE5E5',
+  },
+  logoutText: {
+    color: '#D11A2A',
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
