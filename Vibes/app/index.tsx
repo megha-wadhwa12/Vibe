@@ -2,48 +2,38 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/firebase/firebaseConfig";
 
 export default function Index() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  const checkAppState = async () => {
-    try {
-      const hasOnboarded = await AsyncStorage.getItem("hasOnboarded");
-      const userRegistered = await AsyncStorage.getItem("userRegistered");
-
-      if (hasOnboarded) {
-        router.replace("/home");
-        return;
-      }
+  useEffect(() => {
+    const startApp = async () => {
+      const hasOnboarded = await AsyncStorage.getItem("onboardingSeen");
 
       if (!hasOnboarded) {
         router.replace("/onboarding/screen1");
-        return;
+      } else {
+        router.replace("/auth/login/login-screen");
       }
 
-      if (!hasOnboarded && userRegistered) {
-        router.replace("/home");
-        return;
-      }
-
-    } catch (error) {
-      console.error("Error checking app state:", error);
-      router.replace("/onboarding/screen1"); // fallback to onboarding
-    } finally {
       setLoading(false);
     }
-  };
 
-  checkAppState();
-}, [router]);
+    startApp();
+  }, []);
 
-  return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#f9b0d6" />
-    </View>
-  );
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#f9b0d6" />
+      </View>
+    );
+  }
+
+  return null;
 }
 
 const styles = StyleSheet.create({

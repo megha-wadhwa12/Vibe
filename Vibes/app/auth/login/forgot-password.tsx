@@ -26,8 +26,8 @@ export default function ForgotPasswordScreen() {
     // Validate email
     const emailValidation = validateEmail(email);
 
-    if (!emailValidation.valid) {
-      setError(emailValidation.message);
+    if (!emailValidation.isValid) {
+      setError(emailValidation.error);
       return;
     }
 
