@@ -52,7 +52,7 @@ export default function BottomNavigation() {
         onPress={() => handleTabPress('explore', '/explore')}
       >
         <Ionicons
-          name="search"
+          name="compass"
           size={24}
           color={selectedTab === 'explore' ? '#df54d1ff' : '#a243f5a8'}
         />

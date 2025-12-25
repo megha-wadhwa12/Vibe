@@ -112,15 +112,6 @@ const hashtagColors: { [key: string]: string } = {
 
 export default function Home() {
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      // ❌ yahan router.replace() nahi likhna
-    } catch (error) {
-      console.error('Logout failed', error);
-    }
-  };
-
 
   const renderVibeCard = (vibe: VibeCard, index: number) => {
     return (
@@ -184,9 +175,6 @@ export default function Home() {
             <View style={styles.avatarContainer}>
               <Ionicons name="person" size={20} color="#8B4513" />
             </View>
-            <Pressable onPress={handleLogout} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>Log out</Text>
-            </Pressable>
           </View>
 
           <Text style={styles.title}>Vibe Board</Text>
