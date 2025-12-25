@@ -9,6 +9,7 @@ import BottomNavigation from '@/components/BottomNavigation';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/firebase/firebaseConfig';
+import { AppStateProvider } from '@/contexts/AppContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -22,14 +23,7 @@ export default function RootLayout() {
     pathname.startsWith('/onboarding');
 
   useEffect(() => {
-    console.log('AUTH LISTENER ATTACHED');
-
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('AUTH STATE CHANGED', {
-        user: !!user,
-        verified: user?.emailVerified,
-        path: pathname,
-      });
 
       // 🔓 Allow auth & signup routes freely
       if (isAuthRoute) {
@@ -73,15 +67,18 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={DefaultTheme}>
-      <StatusBar style="dark" />
-      <View style={styles.container}>
-        <Stack screenOptions={{ headerShown: false }} />
-        {showBottomNav && (
-          <View style={styles.bottomNavContainer}>
-            <BottomNavigation />
-          </View>
-        )}
-      </View>
+      <AppStateProvider>
+        <StatusBar style="dark" />
+        <View style={styles.container}>
+          <Stack screenOptions={{ headerShown: false }} />
+          {showBottomNav && (
+            <View style={styles.bottomNavContainer}>
+              <BottomNavigation />
+            </View>
+          )}
+        </View>
+      </AppStateProvider>
+
     </ThemeProvider>
   );
 }

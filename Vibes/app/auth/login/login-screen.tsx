@@ -53,16 +53,11 @@ export default function LoginScreen() {
       setErrors({});
       setIsLoading(true);
 
-      console.log('LOGIN CLICKED');
-
       await signInWithEmailAndPassword(
         auth,
         emailOrUsername.trim(),
         password
       );
-
-      console.log('LOGIN SUCCESS');
-
 
     } catch (err: any) {
       const code = err?.code;

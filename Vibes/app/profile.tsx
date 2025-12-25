@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, G } from 'react-native-svg';
+import { useAppContext } from '@/contexts/AppContext';
+import { getUserProfile } from '@/lib/getUserProfile';
+import { auth } from '@/firebase/firebaseConfig';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 50) / 2; // 2 cards per row with padding
@@ -88,6 +91,47 @@ const moodData = [
 export default function Profile() {
   const router = useRouter();
 
+  const { profile, setProfile, loading, setLoading } = useAppContext();
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (profile) return;
+      try {
+
+        setLoading(true)
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const data = await getUserProfile(user.uid);
+        setProfile(data);
+      } catch (e) {
+        console.error('PROFILE FETCH ERROR:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={{ textAlign: 'center', marginTop: 40 }}>
+          Loading profile...
+        </Text>
+      </SafeAreaView>
+    );
+  }
+  const fallbackAvatar =
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200';
+
+  const avatarUrl =
+    profile && typeof profile.avatar === 'string' && profile.avatar.length > 0
+      ? profile.avatar
+      : fallbackAvatar;
+
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
@@ -110,18 +154,26 @@ export default function Profile() {
         {/* Profile Header Section */}
         <View style={styles.profileHeader}>
           <View style={styles.profileImageContainer}>
-            <Image
-              source={{
-                uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-              }}
-              style={styles.profileImage}
-            />
+            {profile && (
+              <Image
+                source={{ uri: avatarUrl }}
+                style={styles.profileImage}
+              />
+            )}
+
           </View>
-          <Text style={styles.profileName}>Aria Moon</Text>
-          <Text style={styles.profileUsername}>@ariamoon</Text>
-          <Text style={styles.profileBio}>
-            Chasing sunsets and good vibes ✨ | Artist & dreamer
+          <Text style={styles.profileName}>
+            {profile?.firstName} {profile?.lastName}
           </Text>
+
+          <Text style={styles.profileUsername}>
+            @{profile?.username ?? 'user'}
+          </Text>
+
+          <Text style={styles.profileBio}>
+            {profile?.bio || 'No bio yet'}
+          </Text>
+
           <View style={styles.actionButtons}>
             <TouchableOpacity style={styles.actionButton}>
               <Text style={styles.actionButtonText}>Edit Profile</Text>

@@ -8,6 +8,7 @@ import { useSignup } from '@/contexts/SignupContext'
 
 import { sendEmailVerification } from 'firebase/auth'
 import { auth } from '@/firebase/firebaseConfig'
+import { createUserProfile } from '@/lib/createUserProfile'
 
 export default function Verify() {
   const router = useRouter()
@@ -36,26 +37,50 @@ export default function Verify() {
     }
   }
 
-  const handleCheckVerification = async () => {
-    try {
-      setIsChecking(true)
-      setError(undefined)
+const handleCheckVerification = async () => {
+  try {
+    setIsChecking(true)
+    setError(undefined)
 
-      if (!auth.currentUser) {
-        setError('User not found, please login again.')
-        return
-      }
-
-      await auth.currentUser?.reload()
-      if (auth.currentUser?.emailVerified) router.replace('/home')
-      else setError('Please verify your email first.')
-
-    } catch (err) {
-      setError('Something went wrong. Please try again.')
-    } finally {
-      setIsChecking(false)
+    const user = auth.currentUser
+    if (!user) {
+      setError('User not found, please login again.')
+      return
     }
+
+    await user.reload()
+
+    if (!user.emailVerified) {
+      setError('Please verify your email first.')
+      return
+    }
+
+    if (!signupData?.username) {
+      console.log('Signup data missing, skipping profile creation')
+      router.replace('/home')
+      return
+    }
+
+    await createUserProfile({
+      uid: user.uid,
+      email: user.email!,
+      username: signupData.username,
+      firstName: signupData.firstName,
+      lastName: signupData.lastName,
+      dob: signupData.birthday,
+      avatar: signupData.profilePhoto || null,
+    })
+
+    router.replace('/home')
+
+  } catch (err) {
+    console.error('PROFILE ERROR:', err)
+    setError('Something went wrong. Please try again.')
+  } finally {
+    setIsChecking(false)
   }
+}
+
 
   useEffect(() => {
     if (resendTimer > 0) {

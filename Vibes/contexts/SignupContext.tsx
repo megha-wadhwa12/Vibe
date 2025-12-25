@@ -13,8 +13,8 @@ export interface SignupData {
 
   // Birthday
   birthday: {
-    month: number;
     day: number;
+    month: number;
     year: number;
   } | null;
 }

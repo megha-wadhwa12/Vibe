@@ -115,7 +115,6 @@ export default function Home() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      console.log('User logged out');
       // ❌ yahan router.replace() nahi likhna
     } catch (error) {
       console.error('Logout failed', error);
