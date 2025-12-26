@@ -35,7 +35,7 @@ export default function BottomNavigation() {
         <Ionicons
           name="home"
           size={24}
-          color={selectedTab === 'home' ? '#df54d1ff' : '#a243f5a8'}
+          color={selectedTab === 'home' ? '#be4ed7ff' : '#9c0b97ff'}
         />
         <Text
           style={[
@@ -54,7 +54,7 @@ export default function BottomNavigation() {
         <Ionicons
           name="compass"
           size={24}
-          color={selectedTab === 'explore' ? '#df54d1ff' : '#a243f5a8'}
+          color={selectedTab === 'explore' ? '#be4ed7ff' : '#9c0b97ff'}
         />
         <Text
           style={[
@@ -73,7 +73,7 @@ export default function BottomNavigation() {
         <Ionicons
           name="add-circle"
           size={24}
-          color={selectedTab === 'create' ? '#df54d1ff' : '#a243f5a8'}
+          color={selectedTab === 'create' ? '#be4ed7ff' : '#9c0b97ff'}
         />
         <Text
           style={[
@@ -92,7 +92,7 @@ export default function BottomNavigation() {
         <Ionicons
           name="chatbubbles"
           size={24}
-          color={selectedTab === 'chat' ? '#df54d1ff' : '#a243f5a8'}
+          color={selectedTab === 'chat' ? '#be4ed7ff' : '#9c0b97ff'}
         />
         <Text
           style={[
@@ -111,7 +111,7 @@ export default function BottomNavigation() {
         <Ionicons
           name="person"
           size={24}
-          color={selectedTab === 'profile' ? '#df54d1ff' : '#a243f5a8'}
+          color={selectedTab === 'profile' ? '#be4ed7ff' : '#9c0b97ff'}
         />
         <Text
           style={[
@@ -143,12 +143,12 @@ const styles = StyleSheet.create({
   },
   navLabel: {
     fontSize: 11,
-    color: '#8918eca8',
+    color: '#9c0b97ff',
     marginTop: 4,
     fontWeight: '500',
   },
   navLabelActive: {
-    color: '#df54d1ff',
+    color: '#be4ed7ff',
     fontWeight: '700',
   },
 });

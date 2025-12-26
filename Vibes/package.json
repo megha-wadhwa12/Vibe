@@ -41,6 +41,7 @@
     "react-native-screens": "~4.16.0",
     "react-native-svg": "^15.12.1",
     "react-native-swiper": "^1.6.0",
+    "react-native-toast-message": "^2.1.5",
     "react-native-vector-icons": "^10.3.0",
     "react-native-web": "~0.21.0",
     "react-native-wheel-picker-expo": "^0.5.4",

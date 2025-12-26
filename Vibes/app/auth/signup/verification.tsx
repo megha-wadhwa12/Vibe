@@ -56,7 +56,6 @@ const handleCheckVerification = async () => {
     }
 
     if (!signupData?.username) {
-      console.log('Signup data missing, skipping profile creation')
       router.replace('/home')
       return
     }

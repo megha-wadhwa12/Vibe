@@ -61,7 +61,6 @@ export default function LoginScreen() {
 
     } catch (err: any) {
       const code = err?.code;
-      console.log("code: ", code);
 
       if (code === 'auth/invalid-credential') {
         setErrors({
@@ -202,6 +201,17 @@ export default function LoginScreen() {
               >
                 <Text style={styles.forgotPasswordText}>Forgot your password?</Text>
               </Pressable>
+
+              <View style={{ flexDirection: 'row', marginTop: 20 }}>
+                <Text style={{ color: '#333' }}>Don't have an account? </Text>
+                <Pressable
+                  onPress={() => router.push('/auth/signup/basic-info')}
+                  disabled={isLoading}
+                >
+                  <Text style={{ color: '#4A90E2', fontWeight: '500' }}>Sign Up</Text>
+                </Pressable>
+              </View>
+
             </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>

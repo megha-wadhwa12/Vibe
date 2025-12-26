@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/firebase/firebaseConfig';
 import { AppStateProvider } from '@/contexts/AppContext';
+import Toast from 'react-native-toast-message';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -77,6 +78,7 @@ export default function RootLayout() {
             </View>
           )}
         </View>
+        <Toast />
       </AppStateProvider>
 
     </ThemeProvider>

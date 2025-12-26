@@ -22,29 +22,105 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
+import { createPost, extractTags } from '@/lib/createPosts'
+import { auth } from '@/firebase/firebaseConfig'
+import { useAppContext } from '@/contexts/AppContext'
+import type { CreatePostStateType } from '@/contexts/AppContext';
+import Toast from 'react-native-toast-message';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
-// Emoji data
-const feelingEmojis = [
-  { id: '1', emoji: '💕', name: 'love' },
-  { id: '2', emoji: '✨', name: 'sparkle' },
-  { id: '3', emoji: '☁️', name: 'cloud' },
-  { id: '4', emoji: '😢', name: 'sad' },
-  { id: '5', emoji: '🌷', name: 'tulip' },
-  { id: '6', emoji: '🌈', name: 'rainbow' },
-  { id: '7', emoji: '🌙', name: 'moon' },
-  { id: '8', emoji: '🌸', name: 'cherry' },
-  { id: '9', emoji: '🦋', name: 'butterfly' },
-  { id: '10', emoji: '🌊', name: 'wave' },
+export const MOOD_CONFIG = {
+  happy: {
+    id: 'happy',
+    label: 'Happy',
+    emoji: '💕',
+    bgVariant: 'soft-pink',
+  },
+  creative: {
+    id: 'creative',
+    label: 'Creative',
+    emoji: '✨',
+    bgVariant: 'sunny-yellow',
+  },
+  dreamy: {
+    id: 'dreamy',
+    label: 'Dreamy',
+    emoji: '☁️',
+    bgVariant: 'sky-blue',
+  },
+  sad: {
+    id: 'sad',
+    label: 'Sad',
+    emoji: '😢',
+    bgVariant: 'lavender',
+  },
+  calm: {
+    id: 'calm',
+    label: 'Calm',
+    emoji: '🌷',
+    bgVariant: 'mint-green',
+  },
+  hopeful: {
+    id: 'hopeful',
+    label: 'Hopeful',
+    emoji: '🌈',
+    bgVariant: 'peach',
+  },
+  reflective: {
+    id: 'reflective',
+    label: 'Reflective',
+    emoji: '🌙',
+    bgVariant: 'midnight',
+  },
+  nostalgic: {
+    id: 'nostalgic',
+    label: 'Nostalgic',
+    emoji: '🌸',
+    bgVariant: 'rose',
+  },
+  free: {
+    id: 'free',
+    label: 'Free',
+    emoji: '🦋',
+    bgVariant: 'aqua',
+  },
+  flow: {
+    id: 'flow',
+    label: 'Flow',
+    emoji: '🌊',
+    bgVariant: 'deep-blue',
+  },
+} as const;
+
+const backgroundColors = [
+  '#FFE5E5', // Light pink
+  '#E5F5FF', // Light blue
+  '#E5FFE5', // Light green
+  '#FFF5E5', // Light orange
+  '#F5E5FF', // Light purple
+  '#FFFFE5', // Light yellow
 ];
 
 export default function Create() {
-  const [selectedFeeling, setSelectedFeeling] = useState('2'); // Default to sparkle
-  const [quote, setQuote] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const router = useRouter();
+
   const [isFocused, setIsFocused] = useState(false);
+
+  const { postState, setPostState, profile } = useAppContext();
+
+  const moods = Object.values(MOOD_CONFIG);
+
+  const updatePost = <K extends keyof CreatePostStateType>(
+    key: K,
+    value: CreatePostStateType[K]
+  ) => {
+    setPostState((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   const scaleAnim = useSharedValue(1);
   const glowAnim = useSharedValue(0);
@@ -67,18 +143,68 @@ export default function Create() {
     };
   });
 
-  const handlePostPress = () => {
+  const postPressStyle = () => {
     scaleAnim.value = withSpring(0.95, {}, () => {
       scaleAnim.value = withSpring(1);
     });
     glowAnim.value = withTiming(1, { duration: 200 }, () => {
       glowAnim.value = withTiming(0, { duration: 300 });
     });
-    // Handle post submission here
-    console.log('Posting vibe:', { quote, selectedFeeling, selectedImage, selectedColor });
+  }
+
+  const handlePostPress = async () => {
+    postPressStyle();
+
+    if (!postState.description.trim() || !profile) return;
+
+    const user = auth.currentUser;
+    if (!user) {
+      console.error('User not logged in');
+      return;
+    }
+
+    const payload = {
+      description: postState.description,
+      mood: postState.mood,
+      media: postState.media,
+      tags: extractTags(postState.description),
+      authorId: user.uid,
+      authorUsername: profile?.username ?? 'anonymous',
+    };
+
+    try {
+
+      const postId = await createPost(payload);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Vibe posted ✨',
+        text2: 'Your vibe is now live',
+        position: 'bottom',
+      });
+
+      resetPostState();
+
+      setTimeout(() => {
+        router.replace('/home');
+      }, 800);
+    } catch (error) {
+      console.error('Failed to post vibe:', error);
+    }
+  };
+
+  const resetPostState = () => {
+    setPostState({
+      mood: 'creative',
+      description: '',
+      media: null,
+      song: null,
+    });
   };
 
   const handleUploadPress = () => {
+    if (postState.media?.type === 'image') return;
+
     uploadScale.value = withSpring(0.98, {}, () => {
       uploadScale.value = withSpring(1);
     });
@@ -100,27 +226,23 @@ export default function Create() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setSelectedImage(result.assets[0].uri);
-      setSelectedColor(null);
+      updatePost('media', {
+        type: 'image',
+        value: result.assets[0].uri,
+      });
     }
   };
 
   const handleColorSelect = (color: string) => {
-    setSelectedColor(color);
-    setSelectedImage(null);
+    updatePost('media', {
+      type: 'background',
+      value: color,
+    });
   };
 
-  const backgroundColors = [
-    '#FFE5E5', // Light pink
-    '#E5F5FF', // Light blue
-    '#E5FFE5', // Light green
-    '#FFF5E5', // Light orange
-    '#F5E5FF', // Light purple
-    '#FFFFE5', // Light yellow
-  ];
 
-  const handleFeelingSelect = (id: string) => {
-    setSelectedFeeling(id);
+  const handleFeelingSelect = (moodID: string) => {
+    updatePost('mood', moodID);
   };
 
   React.useEffect(() => {
@@ -173,17 +295,17 @@ export default function Create() {
                     onPress={handleUploadPress}
                     activeOpacity={0.8}
                   >
-                    {selectedImage ? (
+                    {postState.media?.type === 'image' ? (
                       <Image
-                        source={{ uri: selectedImage }}
+                        source={{ uri: postState.media.value }}
                         style={styles.uploadedImage}
                         resizeMode="cover"
                       />
-                    ) : selectedColor ? (
+                    ) : postState.media?.type === 'background' ? (
                       <View
                         style={[
                           styles.colorPreview,
-                          { backgroundColor: selectedColor },
+                          { backgroundColor: postState.media.value },
                         ]}
                       />
                     ) : (
@@ -208,28 +330,32 @@ export default function Create() {
                   </TouchableOpacity>
                 </Animated.View>
 
-                {/* Color Picker */}
-                {!selectedImage && (
+                {postState.media?.type !== 'image' && (
                   <View style={styles.colorPicker}>
-                    {backgroundColors.map((color, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={[
-                          styles.colorOption,
-                          {
-                            backgroundColor: color,
-                            borderWidth: selectedColor === color ? 3 : 1,
-                            borderColor:
-                              selectedColor === color ? '#FF6B9D' : '#E0E0E0',
-                          },
-                        ]}
-                        onPress={() => handleColorSelect(color)}
-                      >
-                        {selectedColor === color && (
-                          <Ionicons name="checkmark" size={16} color="#FF6B9D" />
-                        )}
-                      </TouchableOpacity>
-                    ))}
+                    {backgroundColors.map((color) => {
+                      const isSelected =
+                        postState.media?.type === 'background' &&
+                        postState.media.value === color;
+
+                      return (
+                        <TouchableOpacity
+                          key={color}
+                          style={[
+                            styles.colorOption,
+                            {
+                              backgroundColor: color,
+                              borderWidth: isSelected ? 3 : 1,
+                              borderColor: isSelected ? '#FF6B9D' : '#E0E0E0',
+                            },
+                          ]}
+                          onPress={() => handleColorSelect(color)}
+                        >
+                          {isSelected && (
+                            <Ionicons name="checkmark" size={16} color="#FF6B9D" />
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
                 )}
               </Animatable.View>
@@ -249,8 +375,9 @@ export default function Create() {
                   placeholderTextColor="#B0B0B0"
                   multiline
                   numberOfLines={4}
-                  value={quote}
-                  onChangeText={setQuote}
+                  value={postState.description}
+                  onChangeText={(text) => updatePost('description', text)}
+
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
                 />
@@ -284,11 +411,11 @@ export default function Create() {
                   contentContainerStyle={styles.emojiScroll}
                   style={styles.emojiContainer}
                 >
-                  {feelingEmojis.map((item, index) => {
-                    const isSelected = selectedFeeling === item.id;
+                  {moods.map((mood, index) => {
+                    const isSelected = postState.mood === mood.id;
                     return (
                       <Animatable.View
-                        key={item.id}
+                        key={mood.id}
                         animation="zoomIn"
                         delay={500 + index * 50}
                       >
@@ -297,10 +424,10 @@ export default function Create() {
                             styles.emojiButton,
                             isSelected && styles.emojiButtonSelected,
                           ]}
-                          onPress={() => handleFeelingSelect(item.id)}
+                          onPress={() => handleFeelingSelect(mood.id)}
                           activeOpacity={0.7}
                         >
-                          <Text style={styles.emoji}>{item.emoji}</Text>
+                          <Text style={styles.emoji}>{mood.emoji}</Text>
                           {isSelected && (
                             <Animatable.View
                               animation="pulse"
@@ -356,7 +483,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingBottom: 100, // Space for bottom navigation
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
