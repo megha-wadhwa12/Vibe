@@ -1,4 +1,7 @@
-import { createContext, useContext, useState } from 'react';
+import { auth } from '@/firebase/firebaseConfig';
+import { getPosts, postType } from '@/lib/getPosts';
+import { getUserProfile } from '@/lib/getUserProfile';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 type AppStateType = {
   profile: any | null;
@@ -9,6 +12,8 @@ type AppStateType = {
   setPostState: React.Dispatch<
     React.SetStateAction<CreatePostStateType>
   >;
+  posts: any | null;
+  setPosts: (post: any) => void;
 };
 
 export type PostMedia =
@@ -28,6 +33,7 @@ const AppStateContext = createContext<AppStateType | null>(null);
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [posts, setPosts] = useState<postType[]>([]);
 
   const [postState, setPostState] = useState<CreatePostStateType>({
     mood: 'creative',
@@ -35,6 +41,43 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     media: null,
     song: null,
   });
+
+    useEffect(() => {
+      const loadProfile = async () => {
+        if (profile) return;
+        try {
+  
+          setLoading(true)
+          const user = auth.currentUser;
+          if (!user) return;
+  
+          const data = await getUserProfile(user.uid);
+          setProfile(data);
+        } catch (e) {
+          console.error('PROFILE FETCH ERROR:', e);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      loadProfile();
+    }, []);
+
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        setLoading(true);
+        const data = await getPosts();
+        console.log("dataaaaa: ", data);
+        setPosts(data);
+      } catch (error) {
+        console.error("POST FETCH ERROR: ", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadPosts();
+  }, []);
 
   return (
     <AppStateContext.Provider
@@ -44,7 +87,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         loading,
         setLoading,
         postState,
-        setPostState
+        setPostState,
+        posts,
+        setPosts
       }}
     >
       {children}

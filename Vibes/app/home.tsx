@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,91 +12,21 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { signOut } from 'firebase/auth';
-import { auth } from '@/firebase/firebaseConfig';
+import { getPosts } from '@/lib/getPosts';
+import { PostMedia, useAppContext } from '@/contexts/AppContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
 
 interface VibeCard {
-  id: string;
-  type: 'image' | 'text';
-  content: string;
-  hashtags: string[];
-  imageUrl?: string;
+  authorId: string;
+  authorUsername: string;
+  createdAt: string;
+  description: string;
+  tags: string[];
+  mood: string;
+  media: PostMedia
 }
-
-const dummyVibes: VibeCard[] = [
-  {
-    id: '1',
-    type: 'image',
-    content: '',
-    hashtags: ['#dreamy', '#nostalgic'],
-    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-  },
-  {
-    id: '2',
-    type: 'image',
-    content: '',
-    hashtags: ['#serene', '#calm'],
-    imageUrl: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400',
-  },
-  {
-    id: '3',
-    type: 'text',
-    content: '"The future belongs to those who believe in the beauty of their dreams."',
-    hashtags: ['#inspirational'],
-  },
-  {
-    id: '4',
-    type: 'text',
-    content: '"And into the forest I go, to lose my mind and find my soul."',
-    hashtags: ['#adventure'],
-  },
-  {
-    id: '5',
-    type: 'image',
-    content: '',
-    hashtags: ['#cozy', '#peaceful'],
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
-  },
-  {
-    id: '6',
-    type: 'image',
-    content: '',
-    hashtags: ['#aesthetic'],
-    imageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
-  },
-  {
-    id: '7',
-    type: 'image',
-    content: '',
-    hashtags: ['#cozy', '#peaceful'],
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
-  },
-  {
-    id: '8',
-    type: 'image',
-    content: '',
-    hashtags: ['#aesthetic'],
-    imageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
-  },
-  {
-    id: '9',
-    type: 'image',
-    content: '',
-    hashtags: ['#cozy', '#peaceful'],
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
-  },
-  {
-    id: '10',
-    type: 'image',
-    content: '',
-    hashtags: ['#aesthetic'],
-    imageUrl: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
-  },
-];
 
 const hashtagColors: { [key: string]: string } = {
   '#dreamy': '#FFD700',
@@ -112,24 +42,29 @@ const hashtagColors: { [key: string]: string } = {
 
 export default function Home() {
 
+  const { posts, setPosts, loading, setLoading } = useAppContext()
 
   const renderVibeCard = (vibe: VibeCard, index: number) => {
+    const isImage = vibe.media?.type === 'image'
     return (
-      <View key={vibe.id} style={styles.vibeCard}>
-        {vibe.type === 'image' && vibe.imageUrl ? (
+      <View key={index} style={styles.vibeCard}>
+        {isImage ? (
           <Image
-            source={{ uri: vibe.imageUrl }}
+            source={{ uri: vibe.media?.value }}
             style={styles.vibeImage}
             resizeMode="cover"
           />
         ) : (
-          <View style={styles.textCard}>
-            <Text style={styles.quoteText}>{vibe.content}</Text>
+          <View style={[
+            styles.textCard,
+            { backgroundColor: vibe.media?.value || '#F5E5FF' },
+          ]}>
+            <Text style={styles.quoteText}>{vibe.description}</Text>
           </View>
         )}
 
         <View style={styles.hashtagContainer}>
-          {vibe.hashtags.map((tag, tagIndex) => (
+          {vibe.tags.map((tag, tagIndex) => (
             <View
               key={tagIndex}
               style={[
@@ -171,7 +106,7 @@ export default function Home() {
       >
         {/* Top Bar */}
         <View style={styles.topBar}>
-          <View style={{display: 'flex', flexDirection: 'row'}}>
+          <View style={{ display: 'flex', flexDirection: 'row' }}>
             <View style={styles.avatarContainer}>
               <Ionicons name="person" size={20} color="#8B4513" />
             </View>
@@ -190,7 +125,7 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.cardsGrid}>
-            {dummyVibes.map((vibe, index) => renderVibeCard(vibe, index))}
+            {posts.map((vibe: VibeCard, index: number) => renderVibeCard(vibe, index))}
           </View>
         </ScrollView>
       </LinearGradient>
@@ -264,7 +199,7 @@ const styles = StyleSheet.create({
     minHeight: CARD_WIDTH,
     padding: 16,
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    // backgroundColor: '#fff',
   },
   quoteText: {
     fontSize: 14,

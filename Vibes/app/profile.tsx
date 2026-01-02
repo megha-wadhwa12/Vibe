@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import Svg, { Circle, G } from 'react-native-svg';
 import { useAppContext } from '@/contexts/AppContext';
 import { getUserProfile } from '@/lib/getUserProfile';
 import { auth } from '@/firebase/firebaseConfig';
+import { postType } from '@/lib/getPosts';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 50) / 2; // 2 cards per row with padding
@@ -65,54 +66,24 @@ const DonutChart = ({ data }: { data: Array<{ label: string; value: number; colo
   );
 };
 
-// Dummy vibe images
-const dummyVibes = [
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-  'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
-  'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400',
-  'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
-  'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-  'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400',
-  'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400',
-  'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
-  'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
-];
-
 // Mood data matching the screenshot
-const moodData = [
-  { label: 'Happy', value: 50, color: '#4CAF50' }, // Green
-  { label: 'Creative', value: 20, color: '#FF9800' }, // Orange
-  { label: 'Dreamy', value: 10, color: '#E91E63' }, // Pink
-  { label: 'Calm', value: 5, color: '#9C27B0' }, // Purple
-  { label: 'Nostalgic', value: 15, color: '#FF5722' }, // Reddish-orange
-];
+const MOOD_COLORS: Record<string, string> = {
+  calm: '#9C27B0',
+  creative: '#FF9800',
+  reflective: '#03A9F4',
+  happy: '#E91E63',
+  dreamy: '#3F51B5',
+  sad: '#2196F3',
+  hopeful: '#4CAF50',
+  nostalgic: '#FF5722',
+  free: '#009688',
+  flow: '#03A9F4',
+};
 
 export default function Profile() {
   const router = useRouter();
 
-  const { profile, setProfile, loading, setLoading } = useAppContext();
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (profile) return;
-      try {
-
-        setLoading(true)
-        const user = auth.currentUser;
-        if (!user) return;
-
-        const data = await getUserProfile(user.uid);
-        setProfile(data);
-      } catch (e) {
-        console.error('PROFILE FETCH ERROR:', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, []);
+  const { profile, setProfile, loading, setLoading, posts, setPosts } = useAppContext();
 
   if (loading) {
     return (
@@ -131,6 +102,55 @@ export default function Profile() {
       ? profile.avatar
       : fallbackAvatar;
 
+  const userPosts = useMemo(
+    () => posts.filter((p: { authorId: string; }) => p.authorId === profile.uid),
+    [posts, profile?.uid]
+  );
+
+    const moodAnalyticsData = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    userPosts.forEach((post: postType) => {
+      if (!post.mood) return;
+      counts[post.mood] = (counts[post.mood] || 0) + 1;
+    });
+
+    return Object.entries(counts).map(([mood, count]) => ({
+      label: mood,
+      value: count,
+      color: MOOD_COLORS[mood] || '#BDBDBD',
+    }));
+  }, [userPosts]);
+
+  const renderVibeCard = (vibe: postType, index: number) => {
+    const isImage = vibe.media?.type === 'image'
+    return (
+
+      <Pressable
+        key={index}
+        style={styles.vibeCard}
+        onPress={() => {
+          // Handle press
+          router.push('/myVibes');
+        }}
+      >
+        {isImage ? (
+          <Image
+            source={{ uri: vibe.media?.value }}
+            style={styles.vibeImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[
+            styles.textCard,
+            { backgroundColor: vibe.media?.value || '#F5E5FF' },
+          ]}>
+            <Text style={styles.quoteText}>{vibe.description}</Text>
+          </View>
+        )}
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -175,7 +195,7 @@ export default function Profile() {
           </Text>
 
           <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={()=> router.push('/edit-profile')}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/edit-profile')}>
               <Text style={styles.actionButtonText}>Edit Profile</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton}>
@@ -188,39 +208,39 @@ export default function Profile() {
         <View style={styles.analyticsCard}>
           <Text style={styles.sectionTitle}>Mood Analytics</Text>
           <View style={styles.chartWrapper}>
-            <DonutChart data={moodData} />
-          </View>
-          <View style={styles.legend}>
-            {moodData.map((mood, index) => (
-              <View key={index} style={styles.legendItem}>
-                <View style={[styles.legendColor, { backgroundColor: mood.color }]} />
-                <Text style={styles.legendText}>
-                  {mood.label} ({mood.value}%)
-                </Text>
+            
+          {moodAnalyticsData.length > 0 ? (
+            <>
+              <DonutChart data={moodAnalyticsData} />
+              <View style={styles.legend}>
+                {moodAnalyticsData.map((item, index) => (
+                  <View key={index} style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: item.color },
+                      ]}
+                    />
+                    <Text style={styles.legendText}>
+                      {item.label} ({item.value})
+                    </Text>
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
+            </>
+          ) : (
+            <Text style={{ textAlign: 'center', color: '#999' }}>
+              No mood data yet
+            </Text>
+          )}
+        </View>
         </View>
 
         {/* My Vibes Section */}
         <View style={styles.vibesSection}>
           <Text style={styles.sectionTitle}>My Vibes</Text>
           <View style={styles.vibesGrid}>
-            {dummyVibes.map((imageUri, index) => (
-              <Pressable
-                key={index}
-                style={styles.vibeCard}
-                onPress={() => {
-                  // Handle press
-                }}
-              >
-                <Image
-                  source={{ uri: imageUri }}
-                  style={styles.vibeImage}
-                  resizeMode="cover"
-                />
-              </Pressable>
-            ))}
+            {userPosts.map(renderVibeCard)}
           </View>
         </View>
       </ScrollView>
@@ -411,5 +431,18 @@ const styles = StyleSheet.create({
   vibeImage: {
     width: '100%',
     height: '100%',
+  },
+  textCard: {
+    width: '100%',
+    minHeight: CARD_WIDTH,
+    padding: 16,
+    justifyContent: 'center',
+  },
+  quoteText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: '#333',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

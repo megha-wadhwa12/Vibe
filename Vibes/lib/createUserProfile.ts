@@ -1,7 +1,7 @@
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/firebase/firestoreConfig'
 
-type CreateUserProfileParams = {
+export type CreateUserProfileParams = {
   uid: string;
   email: string;
   username: string;

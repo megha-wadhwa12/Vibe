@@ -1,12 +1,14 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/firebase/firestoreConfig'
+import { PostMedia } from '@/contexts/AppContext'
 
-type CreatePostInput = {
+export type CreatePostInput = {
   description: string
   mood: string
   tags: string[]
   authorId: string
   authorUsername: string
+  media: PostMedia
 }
 
 export async function createPost(data: CreatePostInput) {
@@ -17,6 +19,7 @@ export async function createPost(data: CreatePostInput) {
     authorId: data.authorId,
     authorUsername: data.authorUsername,
     createdAt: serverTimestamp(),
+    media: data.media
   })
 
   return docRef.id
